@@ -8,9 +8,6 @@
     "rootDir": "src",
     "sourceMap": true,
     "strict": true,
-    "target": "es6",
-    "paths": {
-      "@package/json": ["./package.json"]
-    }
+    "target": "es6"
   }
 }

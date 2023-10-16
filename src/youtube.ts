@@ -1,14 +1,15 @@
 import { input } from '@inquirer/prompts';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
-import { StringOutputParser } from 'langchain/schema/output_parser';
-import { RunnableSequence } from 'langchain/schema/runnable';
 import { Document } from 'langchain/document';
 import { YoutubeLoader } from 'langchain/document_loaders/web/youtube';
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import { PromptTemplate } from 'langchain/prompts';
+import { StringOutputParser } from 'langchain/schema/output_parser';
+import { RunnableSequence } from 'langchain/schema/runnable';
 import { HNSWLib } from 'langchain/vectorstores/hnswlib';
 import { join } from 'path';
 import { formatChatHistory, logger, serializeDocs } from './utils';
+import ora from 'ora';
 
 let clog = logger(false);
 
@@ -28,7 +29,9 @@ async function fetchYouTubeTranscripts(
     addVideoInfo: true,
   });
 
-  const docs = await loader.load();
+  const spinner = ora('Loading YouTube transcript').start();
+  const docs = await loader.loadAndSplit();
+  spinner.stop();
   clog.vlog(`Retrieved ${docs.length} documents`);
   return docs;
 }
@@ -117,7 +120,7 @@ export const youtube = async (opts: { verbose?: boolean }) => {
 
     response = await chain.invoke(params);
 
-    clog.log({ params });
+    clog.vlog({ params });
     clog.vlog('Response: %j', response);
 
     clog.log(`\n\n${response}\n\n`);
