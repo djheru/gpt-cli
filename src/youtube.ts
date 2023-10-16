@@ -1,17 +1,28 @@
 import { input } from '@inquirer/prompts';
+import { YoutubeLoader } from 'langchain/document_loaders/web/youtube';
 import { logger } from './utils';
 
+let clog = logger(false);
+
 async function fetchYouTubeData(url: string): Promise<void> {
-  console.log(`Fetching data for ${url}...`);
-  // Replace this with your actual data fetching logic
+  clog.vlog(`Retrieving YouTube transcript for: ${url}`);
+  const loader = YoutubeLoader.createFromUrl(url, {
+    language: 'en',
+    addVideoInfo: true,
+  });
+
+  const docs = await loader.load();
+  clog.vlog(`Retrieved ${docs.length} documents`);
+  clog.vlog(`First document: %j`, docs[0]);
 }
 
 export const youtube = async (opts: { verbose?: boolean }) => {
-  const clog = logger(!!opts.verbose);
+  clog = logger(!!opts.verbose);
   clog.vlog('Verbose logging enabled');
   clog.vlog('Options: %j', opts);
 
   const answer = await input({
+    default: 'https://www.youtube.com/watch?v=0lJKucu6HJc',
     message: 'Enter a YouTube URL:',
   });
 
@@ -23,6 +34,7 @@ export const youtube = async (opts: { verbose?: boolean }) => {
   let done = false;
   while (!done) {
     const userQuestion = await input({
+      default: 'done',
       message: 'Ask a question (or type "done" to exit):',
     });
 
