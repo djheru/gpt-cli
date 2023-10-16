@@ -1,4 +1,5 @@
 import { input } from '@inquirer/prompts';
+import boxen from 'boxen';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { Document } from 'langchain/document';
 import { YoutubeLoader } from 'langchain/document_loaders/web/youtube';
@@ -7,9 +8,9 @@ import { PromptTemplate } from 'langchain/prompts';
 import { StringOutputParser } from 'langchain/schema/output_parser';
 import { RunnableSequence } from 'langchain/schema/runnable';
 import { HNSWLib } from 'langchain/vectorstores/hnswlib';
+import ora from 'ora';
 import { join } from 'path';
 import { formatChatHistory, logger, serializeDocs } from './utils';
-import ora from 'ora';
 
 let clog = logger(false);
 
@@ -29,9 +30,7 @@ async function fetchYouTubeTranscripts(
     addVideoInfo: true,
   });
 
-  const spinner = ora('Loading YouTube transcript').start();
   const docs = await loader.loadAndSplit();
-  spinner.stop();
   clog.vlog(`Retrieved ${docs.length} documents`);
   return docs;
 }
@@ -57,12 +56,19 @@ export const youtube = async (opts: { verbose?: boolean }) => {
 
   clog.vlog(`You entered: ${youtubeUrl}`);
 
+  const spinner = ora('Loading YouTube transcript').start();
+  spinner.color = 'cyan';
   const docs = await fetchYouTubeTranscripts(youtubeUrl);
+  spinner.succeed(`Loaded ${docs.length} documents`);
+  spinner.start();
+  spinner.color = 'green';
+  spinner.text = 'Vectorzing YouTube transcript';
   const vectorStore = await getVectorStore(docs);
   const retriever = vectorStore.asRetriever();
 
   const template = `Use the following pieces of content to answer the question at the end.
   If you don't know the answer, just say that you don't know, don't try to make up an answer.
+  Provide detailed, specific information in the answer.
   ________________________________________________________________
   CONTEXT: {context}
   ________________________________________________________________
@@ -89,14 +95,28 @@ export const youtube = async (opts: { verbose?: boolean }) => {
     new StringOutputParser(),
   ]);
 
-  let question = 'Please provide a high-level summary of the video';
-
+  let question = `Please provide a detailed summary of the video. 
+  Make sure to cover all the main points, but without too much detail. 
+  The user can ask follow-up questions if they need more information about specific details.`;
+  spinner.succeed();
+  spinner.start();
+  spinner.text = 'Generating summary using ChatGPT';
+  spinner.color = 'magenta';
   let response = await chain.invoke({
     question,
   });
+  spinner.stop();
 
   clog.vlog('Response: %j', response);
-  clog.log(`\n\n${response}\n\n`);
+  clog.log(
+    boxen(response, {
+      title: 'Video Summary',
+      titleAlignment: 'left',
+      padding: 1,
+      margin: 1,
+      borderStyle: 'bold',
+    })
+  );
 
   let done = false;
   while (!done) {
@@ -117,12 +137,21 @@ export const youtube = async (opts: { verbose?: boolean }) => {
       chatHistory,
       question,
     };
-
+    spinner.start();
+    spinner.text = 'Analyzing your question using the video transcript and ChatGPT';
+    spinner.color = 'magenta';
     response = await chain.invoke(params);
-
+    spinner.succeed();
     clog.vlog({ params });
-    clog.vlog('Response: %j', response);
 
-    clog.log(`\n\n${response}\n\n`);
+    clog.log(
+      boxen(response, {
+        title: question,
+        titleAlignment: 'left',
+        padding: 1,
+        margin: 1,
+        borderStyle: 'bold',
+      })
+    );
   }
 };

@@ -13,12 +13,13 @@
   "license": "ISC",
   "dependencies": {
     "@inquirer/prompts": "^3.2.0",
+    "boxen": "^5.1.2",
     "commander": "^11.1.0",
     "figlet": "^1.6.0",
     "hnswlib-node": "^1.4.2",
     "langchain": "^0.0.167",
     "openai": "^4.12.1",
-    "ora": "^7.0.1",
+    "ora": "^5.4.1",
     "youtube-transcript": "^1.0.6",
     "youtubei.js": "^5.8.0"
   },

@@ -7,6 +7,7 @@ const { TITLE: title = '' } = process.env;
 
 const version = '0.0.1';
 
+console.clear();
 console.log(figlet.textSync(title));
 
 const program = new Command();
