@@ -7,6 +7,7 @@ import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import { PromptTemplate } from 'langchain/prompts';
 import { StringOutputParser } from 'langchain/schema/output_parser';
 import { RunnableSequence } from 'langchain/schema/runnable';
+import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { HNSWLib } from 'langchain/vectorstores/hnswlib';
 import ora from 'ora';
 import { join } from 'path';
@@ -30,7 +31,9 @@ async function fetchYouTubeTranscripts(
     addVideoInfo: true,
   });
 
-  const docs = await loader.loadAndSplit();
+  const docs = await loader.loadAndSplit(
+    new RecursiveCharacterTextSplitter({ chunkSize: 4000 })
+  );
   clog.vlog(`Retrieved ${docs.length} documents`);
   return docs;
 }
