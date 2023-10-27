@@ -37,7 +37,7 @@ async function fetchYouTubeTranscripts(
 
 async function getVectorStore(docs: Document<Record<string, any>>[]) {
   const vectorStore = await HNSWLib.fromDocuments(docs, new OpenAIEmbeddings());
-  const vectorPath = join(__dirname, 'data');
+  const vectorPath = join(__dirname, 'youtube-data');
   clog.vlog(`Saving vector store to ${vectorPath}`);
   await vectorStore.save(vectorPath);
   return vectorStore;
@@ -95,7 +95,7 @@ export const youtube = async (opts: { verbose?: boolean }) => {
     new StringOutputParser(),
   ]);
 
-  let question = `Please provide a detailed summary of the video. 
+  let question = `Please provide a detailed summary of the video transcript provided. 
   Make sure to cover all the main points, but without too much detail. 
   The user can ask follow-up questions if they need more information about specific details.`;
   spinner.succeed();
