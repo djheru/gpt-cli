@@ -36,10 +36,10 @@ To install the CLI tool, you need to have Node.js and npm installed on your syst
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-repo/YouTube-Video-Analysis-Chat-CLI.git
+git clone https://github.com/djheru/gpt-cli.git
 
 # Navigate into the directory
-cd YouTube-Video-Analysis-Chat-CLI
+cd gpt-cli
 
 # Install dependencies
 npm install
