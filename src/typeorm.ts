@@ -1,71 +1,75 @@
 import { input } from '@inquirer/prompts';
 import boxen from 'boxen';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
-import { Document } from 'langchain/document';
-import { YoutubeLoader } from 'langchain/document_loaders/web/youtube';
+import { GitbookLoader } from 'langchain/document_loaders/web/gitbook';
 import { PromptTemplate } from 'langchain/prompts';
 import { StringOutputParser } from 'langchain/schema/output_parser';
 import { RunnableSequence } from 'langchain/schema/runnable';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import ora from 'ora';
-import { clearTable, getVectorStore } from './db';
+import { dataExistsInTable, getVectorStore } from './db';
 import { formatChatHistory, logger, serializeDocs } from './utils';
-
-let clog = logger(false);
 
 let chatHistory: string = '';
 
 const model = new ChatOpenAI({
-  temperature: 0.7,
-  modelName: 'gpt-3.5-turbo-16k',
+  temperature: 0.3,
+  modelName: 'gpt-4',
 });
 
-async function fetchYouTubeTranscripts(
-  url: string
-): Promise<Document<Record<string, any>>[]> {
-  clog.vlog(`Retrieving YouTube transcript for: ${url}`);
-  const loader = YoutubeLoader.createFromUrl(url, {
-    language: 'en',
-    addVideoInfo: true,
-  });
-
-  const docs = await loader.loadAndSplit(
-    new RecursiveCharacterTextSplitter({ chunkSize: 4000 })
-  );
-  clog.vlog(`Retrieved ${docs.length} documents`);
-  return docs;
-}
-
-export const youtube = async (opts: { verbose?: boolean }) => {
+let clog = logger(false);
+export const typeorm = async (opts: { verbose?: boolean }) => {
   const verbose = !!opts.verbose;
   clog = logger(verbose);
   clog.vlog('Verbose logging enabled');
   clog.vlog('Options: %j', opts);
 
-  const youtubeUrl = await input({
-    default: 'https://www.youtube.com/watch?v=0lJKucu6HJc',
-    message: 'Enter a YouTube URL:',
-  });
-
-  clog.vlog(`You entered: ${youtubeUrl}`);
-
-  const spinner = ora('Loading YouTube transcript').start();
+  const spinner = ora('Loading Documents').start();
   spinner.color = 'cyan';
-  const docs = await fetchYouTubeTranscripts(youtubeUrl);
-  spinner.succeed(`Loaded ${docs.length} documents`);
-  spinner.start();
-  spinner.color = 'green';
-  spinner.text = 'Vectorzing YouTube transcript';
-  const vectorStore = await getVectorStore('youtube_data');
-  await clearTable('youtube_data', vectorStore);
-  await vectorStore.addDocuments(docs);
+
+  const vectorStore = await getVectorStore('typeorm_data');
+  const dataExists = await dataExistsInTable('typeorm_data', vectorStore);
+  if (dataExists) {
+    clog.vlog('TypeORM data already exists in the database');
+    clog.vlog('Skipping data loading step');
+    spinner.succeed('TypeORM data already exists in the database');
+  } else {
+    clog.log('TypeORM data does not exist in the database');
+    clog.log('Loading TypeORM data from Gitbook');
+    const loader = new GitbookLoader('https://orkhan.gitbook.io/typeorm', {
+      shouldLoadAllPaths: true,
+    });
+    spinner.color = 'cyan';
+    const docs = await loader.load();
+    spinner.succeed(`Loaded ${docs.length} documents`);
+    spinner.start();
+    spinner.color = 'green';
+    spinner.text = 'Splitting Data into Chunks';
+
+    const splitter = RecursiveCharacterTextSplitter.fromLanguage('js', {
+      chunkSize: 1500,
+      chunkOverlap: 500,
+    });
+
+    const splitDocs = await splitter.splitDocuments(docs);
+    clog.log(`Split ${splitDocs.length} documents`);
+
+    spinner.text = 'Vectorizing Documents';
+    spinner.color = 'magenta';
+    await vectorStore.addDocuments(splitDocs);
+    spinner.stop();
+  }
+
   const retriever = vectorStore.asRetriever();
 
-  const template = `Use the following pieces of content to answer the question at the end.
+  const template = `You are TypeORM Helper GPT. You are a helpful AI assistant specializing in answering questions from Typescript Developers using the TypeORM library. 
+  Use the following pieces of content to answer the question at the end.
   If you don't know the answer, just say that you don't know, don't try to make up an answer.
   Provide detailed, specific information in the answer.
   ________________________________________________________________
-  CONTEXT: {context}
+  CONTEXT: The context below is extracted from the TypeORM library documentation. It is meant to help you answer the question.
+  
+  {context}
   ________________________________________________________________
   CHAT HISTORY: {chatHistory}
   ________________________________________________________________
@@ -90,30 +94,8 @@ export const youtube = async (opts: { verbose?: boolean }) => {
     new StringOutputParser(),
   ]);
 
-  let question = `Please provide a detailed summary of the video transcript provided. 
-  Make sure to cover all the main points, but without too much detail. 
-  The user can ask follow-up questions if they need more information about specific details.`;
-  spinner.succeed();
-  spinner.start();
-  spinner.text = 'Generating summary using ChatGPT';
-  spinner.color = 'magenta';
-  let response = await chain.invoke({
-    question,
-  });
-  spinner.stop();
-
-  clog.vlog('Response: %j', response);
-  clog.log(
-    boxen(response, {
-      title: 'Video Summary',
-      titleAlignment: 'left',
-      padding: 2,
-      margin: 2,
-      borderStyle: 'bold',
-      borderColor: 'greenBright',
-    })
-  );
-
+  let question = '';
+  let response = '';
   let done = false;
   while (!done) {
     question = await input({
@@ -134,7 +116,7 @@ export const youtube = async (opts: { verbose?: boolean }) => {
       question,
     };
     spinner.start();
-    spinner.text = 'Analyzing your question using the video transcript and ChatGPT';
+    spinner.text = 'Analyzing your question using the TypeORM docs and ChatGPT';
     spinner.color = 'magenta';
     response = await chain.invoke(params);
     spinner.succeed();

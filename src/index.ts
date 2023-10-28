@@ -1,6 +1,8 @@
 import { Command } from 'commander';
 import 'dotenv/config';
 import figlet from 'figlet';
+import { contacts } from './contacts';
+import { typeorm } from './typeorm';
 import { youtube } from './youtube';
 
 const { TITLE: title = '' } = process.env;
@@ -16,6 +18,24 @@ program
   .name(title)
   .version(version)
   .description('A CLI Tool for interacting with ChatGPT via Langchain tools');
+
+program
+  .command('contacts')
+  .alias('cn')
+  .option('-v, --verbose', 'Verbose output')
+  .description('Chat with the Contacts API using an OpenAPI spec')
+  .action(async (opts) => {
+    await contacts(opts);
+  });
+
+program
+  .command('typeorm')
+  .alias('to')
+  .option('-v, --verbose', 'Verbose output')
+  .description('Chat with the TypeORM docs')
+  .action(async (opts) => {
+    await typeorm(opts);
+  });
 
 program
   .command('youtube')

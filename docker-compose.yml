@@ -1,0 +1,19 @@
+version: '3.7'
+
+services:
+  gptchain-cli-pg:
+    container_name: gptchain-cli-pg
+    env_file: .env
+    image: ankane/pgvector
+    environment:
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+      POSTGRES_USER: ${PGUSER}
+      POSTGRES_DB: ${PGDATABASE}
+      PG_DATA: /var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    volumes:
+      - gptchain-cli-pgdata:/var/lib/postgresql/data
+
+volumes:
+  gptchain-cli-pgdata:
