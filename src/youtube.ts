@@ -17,7 +17,7 @@ let chatHistory: string = '';
 
 const model = new ChatOpenAI({
   temperature: 0.7,
-  modelName: 'gpt-3.5-turbo-16k',
+  modelName: 'gpt-4',
 });
 
 async function fetchYouTubeTranscripts(
