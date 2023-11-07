@@ -27,7 +27,7 @@ export const database = [
   {
     id: 2,
     firstName: 'Jane',
-    lastName: 'Doe',
+    lastName: 'Davis',
     spouseName: 'Sam',
     children: [
       {
@@ -42,6 +42,26 @@ export const database = [
       },
     ],
     interests: ['cinema', 'literature', 'birdwatching'],
+    job: 'account executive',
+  },
+  {
+    id: 3,
+    firstName: 'Gary',
+    lastName: 'Wright',
+    spouseName: 'Mary',
+    children: [
+      {
+        name: 'Richard',
+        age: 15,
+        interests: ['Karate', 'music', 'Minecraft'],
+      },
+      {
+        name: 'Julia',
+        age: 11,
+        interests: ['dinosaurs', 'yoga', 'ant farm'],
+      },
+    ],
+    interests: ['music', 'kayaking', 'birdwatching'],
     job: 'account executive',
   },
 ];

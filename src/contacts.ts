@@ -60,12 +60,15 @@ export const contacts = async (opts: { verbose?: boolean }) => {
   Using only the the information in the context provided at the end, respond to the following user prompt: "{input}". 
   Add additional information helping me know what I can talk about with the contact to make it seem like I remember personal details about their life. 
   The more specific and detailed the information, the better.
+
   The sort of information I would be looking for (if relevant) is:
   - What is their name? What is their job? What are their interests? 
   - What is their spouse's name? What are their children's names, ages, and interests? 
   - Which contacts share jobs or interests in common?
   
-  Add any additional relevant information you can think of.
+  Add any additional relevant information you can think of. 
+  Before you respond, review your response for accuracy and relevance, and adjust as needed.
+  If you don't know, just say that you don't know, don't try to make up an answer.
   
   Base your answers only on the following context: 
   ------------------------------------------------------------

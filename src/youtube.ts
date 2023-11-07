@@ -16,8 +16,8 @@ let clog = logger(false);
 let chatHistory: string = '';
 
 const model = new ChatOpenAI({
-  temperature: 0.7,
-  modelName: 'gpt-4',
+  temperature: 0.4,
+  modelName: 'gpt-3.5-turbo',
 });
 
 async function fetchYouTubeTranscripts(
@@ -62,6 +62,7 @@ export const youtube = async (opts: { verbose?: boolean }) => {
   const retriever = vectorStore.asRetriever();
 
   const template = `Use the following pieces of content to answer the question at the end.
+  Use only the context and the chat history to answer the question.
   If you don't know the answer, just say that you don't know, don't try to make up an answer.
   Provide detailed, specific information in the answer.
   ________________________________________________________________
@@ -71,7 +72,7 @@ export const youtube = async (opts: { verbose?: boolean }) => {
   ________________________________________________________________
   QUESTION: {question}
   ________________________________________________________________
-  HELPFUL ANSWER:`;
+  DETAILED HELPFUL ANSWER:`;
   const questionPrompt = PromptTemplate.fromTemplate(template);
 
   const chain = RunnableSequence.from([
@@ -91,7 +92,7 @@ export const youtube = async (opts: { verbose?: boolean }) => {
   ]);
 
   let question = `Please provide a detailed summary of the video transcript provided. 
-  Make sure to cover all the main points, but without too much detail. 
+  Make sure to cover all the main points with as much detail as possible. Try to cover each and every topic discussed in the transcript. 
   The user can ask follow-up questions if they need more information about specific details.`;
   spinner.succeed();
   spinner.start();

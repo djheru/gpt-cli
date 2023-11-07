@@ -30,12 +30,12 @@ export const typeorm = async (opts: { verbose?: boolean }) => {
   const vectorStore = await getVectorStore('typeorm_data');
   const dataExists = await dataExistsInTable('typeorm_data', vectorStore);
   if (dataExists) {
-    clog.vlog('TypeORM data already exists in the database');
+    spinner.text = 'TypeORM data already exists in the database';
     clog.vlog('Skipping data loading step');
     spinner.succeed('TypeORM data already exists in the database');
   } else {
-    clog.log('TypeORM data does not exist in the database');
-    clog.log('Loading TypeORM data from Gitbook');
+    spinner.text = 'TypeORM data does not exist in the database';
+    spinner.text = 'Loading TypeORM data from Gitbook';
     const loader = new GitbookLoader('https://orkhan.gitbook.io/typeorm', {
       shouldLoadAllPaths: true,
     });
