@@ -132,5 +132,6 @@ export const typeorm = async (opts: { verbose?: boolean }) => {
         borderColor: 'greenBright',
       })
     );
+    spinner.stop();
   }
 };
