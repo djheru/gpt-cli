@@ -3,3 +3,4 @@ node_modules
 dist/
 youtube-data
 typeorm-data
+.DS_Store
