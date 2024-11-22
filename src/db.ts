@@ -26,7 +26,10 @@ export const getVectorStore = async (tableName: string) => {
   };
 
   const typeormVectorStore = await TypeORMVectorStore.fromDataSource(
-    new OpenAIEmbeddings(),
+    new OpenAIEmbeddings({
+      modelName: 'text-embedding-3-large',
+      stripNewLines: true,
+    }),
     args
   );
 

@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import 'dotenv/config';
 import figlet from 'figlet';
 import { contacts } from './contacts';
+import { docs } from './docs';
 import { pdf } from './pdf';
 import { typeorm } from './typeorm';
 import { youtube } from './youtube';
@@ -45,6 +46,15 @@ program
   .description('Chat with the TypeORM docs')
   .action(async (opts) => {
     await typeorm(opts);
+  });
+
+program
+  .command('docs')
+  .alias('do')
+  .option('-v, --verbose', 'Verbose output')
+  .description('Chat with the Parking Manager App docs')
+  .action(async (opts) => {
+    await docs(opts);
   });
 
 program
