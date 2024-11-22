@@ -4,11 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "predocs": "npm run db",
     "db": "docker compose up -d",
     "build": "npx tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "contacts": "ts-node src/index.ts contacts",
     "pdf": "ts-node src/index.ts pdf",
+    "docs": "ts-node src/index.ts docs",
     "typeorm": "ts-node src/index.ts typeorm",
     "youtube": "ts-node src/index.ts youtube",
     "help": "ts-node src/index.ts --help"

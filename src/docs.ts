@@ -1,5 +1,4 @@
 import { input } from '@inquirer/prompts';
-// import { GitbookLoader } from '@langchain/community/document_loaders/web/gitbook';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { ChatOpenAI } from '@langchain/openai';
 import boxen from 'boxen';
@@ -9,12 +8,13 @@ import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import ora from 'ora';
 import { clearTable, dataExistsInTable, getVectorStore } from './db';
 import { formatChatHistory, logger } from './utils';
-// import { CheerioWebBaseLoader } from '@langchain/community/document_loaders/web/cheerio';
 import { RecursiveUrlLoader } from '@langchain/community/document_loaders/web/recursive_url';
 import { compile } from 'html-to-text';
 
+// Store the chat history to keep the conversational context
 let chatHistory: string = '';
 
+// Instantiate the ChatGPT model client
 const llm = new ChatOpenAI({
   temperature: 0.3,
   modelName: 'gpt-4o-mini',
@@ -22,6 +22,7 @@ const llm = new ChatOpenAI({
 
 let clog = logger(false);
 
+// Main function
 export const docs = async (opts: { verbose?: boolean }) => {
   const verbose = !!opts.verbose;
   clog = logger(verbose);
@@ -31,9 +32,11 @@ export const docs = async (opts: { verbose?: boolean }) => {
   const spinner = ora('Loading Documents').start();
   spinner.color = 'cyan';
 
+  // Use PGVector as the data store for the retrieved documents
   const vectorStore = await getVectorStore('parking_manager_data');
-  verbose && (await clearTable('parking_manager_data', vectorStore));
+  verbose && (await clearTable('parking_manager_data', vectorStore)); // Use a fresh DB every time in verbose
 
+  // If data exists in the table, skip the data loading step
   const dataExists = await dataExistsInTable('parking_manager_data', vectorStore);
   if (dataExists) {
     clog.vlog('Parking Manager data already exists in the database');
@@ -43,8 +46,8 @@ export const docs = async (opts: { verbose?: boolean }) => {
     clog.log('Parking Manager data does not exist in the database');
     clog.log('Loading Parking Manager data from Gitbook');
 
+    // recursively load documents from the Parking Manager Gitbook
     const compiledConvert = compile({ wordwrap: 130 }); // returns (text: string) => string;
-
     const loader = new RecursiveUrlLoader(
       'https://docs.parkingmgt.com/parking-manager-app/6wLGdkWdDWt66M6gNTsT',
       {
@@ -55,24 +58,20 @@ export const docs = async (opts: { verbose?: boolean }) => {
     );
     spinner.color = 'cyan';
     const docs = await loader.load();
-    console.log(docs);
     spinner.succeed(`Loaded ${docs.length} documents`);
     spinner.start();
     spinner.color = 'green';
     spinner.text = 'Splitting Data into Chunks';
 
-    // const splitter = new RecursiveCharacterTextSplitter({
-    //   chunkSize: 2000,
-    //   chunkOverlap: 500,
-    // });
+    // Split the loaded documents into chunks that can be more easily parsed by the model
     const splitter = RecursiveCharacterTextSplitter.fromLanguage('html', {
       chunkSize: 1200,
       chunkOverlap: 200,
     });
-
     const splitDocs = await splitter.splitDocuments(docs);
     clog.log(`Split ${splitDocs.length} documents`);
 
+    // Create embeddings for the documents and store them in the vector store
     spinner.text = 'Vectorizing Documents';
     spinner.color = 'magenta';
     await vectorStore.addDocuments(splitDocs);
@@ -81,6 +80,7 @@ export const docs = async (opts: { verbose?: boolean }) => {
 
   const retriever = vectorStore.asRetriever();
 
+  // The system prompt that will be used to provide context and a persona to the model
   const systemPrompt = `You are Parking Manager Helper GPT, an AI assistant specialized in helping Parking Management employees understand and apply operations and procedures. 
 
 - Your goal is to provide accurate, concise, and helpful answers based on the retrieved context.
@@ -93,16 +93,19 @@ Retrieved Context:
 {context}
   `;
 
+  // The prompt template that will be used to structure the conversation
   const prompt = ChatPromptTemplate.fromMessages([
     ['system', systemPrompt],
     ['human', '{input}'],
   ]);
 
+  // Create the chains for the question-answering and retrieval processes
   const questionAnswerChain = await createStuffDocumentsChain({
     llm,
     prompt,
   });
 
+  // Combine the question-answering and retrieval chains into a single chain
   const ragChain = await createRetrievalChain({
     retriever,
     combineDocsChain: questionAnswerChain,
@@ -112,6 +115,7 @@ Retrieved Context:
   let answer = '';
   let done = false;
 
+  // Start the conversation loop
   while (!done) {
     question = await input({
       default: 'done',
@@ -142,7 +146,6 @@ Retrieved Context:
       question,
     };
 
-    console.log(`Answer: ${answer}`);
     spinner.succeed();
     clog.vlog({ params });
 

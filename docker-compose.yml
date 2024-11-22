@@ -1,5 +1,3 @@
-version: '3.7'
-
 services:
   gptchain-cli-pg:
     container_name: gptchain-cli-pg
