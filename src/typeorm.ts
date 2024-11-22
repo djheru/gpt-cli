@@ -1,10 +1,10 @@
 import { input } from '@inquirer/prompts';
+import { GitbookLoader } from '@langchain/community/document_loaders/web/gitbook';
+import { StringOutputParser } from '@langchain/core/output_parsers';
+import { PromptTemplate } from '@langchain/core/prompts';
+import { RunnableSequence } from '@langchain/core/runnables';
+import { ChatOpenAI } from '@langchain/openai';
 import boxen from 'boxen';
-import { ChatOpenAI } from 'langchain/chat_models/openai';
-import { GitbookLoader } from 'langchain/document_loaders/web/gitbook';
-import { PromptTemplate } from 'langchain/prompts';
-import { StringOutputParser } from 'langchain/schema/output_parser';
-import { RunnableSequence } from 'langchain/schema/runnable';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import ora from 'ora';
 import { dataExistsInTable, getVectorStore } from './db';
@@ -14,7 +14,7 @@ let chatHistory: string = '';
 
 const model = new ChatOpenAI({
   temperature: 0.3,
-  modelName: 'gpt-4',
+  modelName: 'gpt-4o',
 });
 
 let clog = logger(false);
@@ -27,18 +27,22 @@ export const typeorm = async (opts: { verbose?: boolean }) => {
   const spinner = ora('Loading Documents').start();
   spinner.color = 'cyan';
 
-  const vectorStore = await getVectorStore('typeorm_data');
-  const dataExists = await dataExistsInTable('typeorm_data', vectorStore);
+  const vectorStore = await getVectorStore('parking_manager_data');
+  const dataExists = await dataExistsInTable('parking_manager_data', vectorStore);
   if (dataExists) {
-    clog.vlog('TypeORM data already exists in the database');
+    clog.vlog('Parking Manager data already exists in the database');
     clog.vlog('Skipping data loading step');
-    spinner.succeed('TypeORM data already exists in the database');
+    spinner.succeed('Parking Manager data already exists in the database');
   } else {
-    clog.log('TypeORM data does not exist in the database');
-    clog.log('Loading TypeORM data from Gitbook');
-    const loader = new GitbookLoader('https://orkhan.gitbook.io/typeorm', {
-      shouldLoadAllPaths: true,
-    });
+    clog.log('Parking Manager data does not exist in the database');
+    clog.log('Loading Parking Manager data from Gitbook');
+    // const loader = new GitbookLoader('https://orkhan.gitbook.io/typeorm', {
+    const loader = new GitbookLoader(
+      'https://docs.parkingmgt.com/parking-manager-app/6wLGdkWdDWt66M6gNTsT',
+      {
+        shouldLoadAllPaths: true,
+      }
+    );
     spinner.color = 'cyan';
     const docs = await loader.load();
     spinner.succeed(`Loaded ${docs.length} documents`);
@@ -46,7 +50,7 @@ export const typeorm = async (opts: { verbose?: boolean }) => {
     spinner.color = 'green';
     spinner.text = 'Splitting Data into Chunks';
 
-    const splitter = RecursiveCharacterTextSplitter.fromLanguage('js', {
+    const splitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1500,
       chunkOverlap: 500,
     });
@@ -62,12 +66,13 @@ export const typeorm = async (opts: { verbose?: boolean }) => {
 
   const retriever = vectorStore.asRetriever();
 
-  const template = `You are TypeORM Helper GPT. You are a helpful AI assistant specializing in answering questions from Typescript Developers using the TypeORM library. 
+  const template = `You are Parking Manager Helper GPT. You are a helpful AI assistant specializing in answering questions from Parking Management employees about operations and procedures. 
+
   Use the following pieces of content to answer the question at the end.
   If you don't know the answer, just say that you don't know, don't try to make up an answer.
   Provide detailed, specific information in the answer.
   ________________________________________________________________
-  CONTEXT: The context below is extracted from the TypeORM library documentation. It is meant to help you answer the question.
+  CONTEXT: The context below is extracted from the Parking Manager documentation. It is meant to help you answer the question.
   
   {context}
   ________________________________________________________________
@@ -86,6 +91,7 @@ export const typeorm = async (opts: { verbose?: boolean }) => {
       context: async (input: { question: string; chatHistory?: string }) => {
         const relevantDocs = await retriever.getRelevantDocuments(input.question);
         const serialized = serializeDocs(relevantDocs);
+        console.log({ serialized });
         return serialized;
       },
     },
@@ -116,7 +122,8 @@ export const typeorm = async (opts: { verbose?: boolean }) => {
       question,
     };
     spinner.start();
-    spinner.text = 'Analyzing your question using the TypeORM docs and ChatGPT';
+    spinner.text =
+      'Analyzing your question using the Parking Manager App docs and ChatGPT';
     spinner.color = 'magenta';
     response = await chain.invoke(params);
     spinner.succeed();

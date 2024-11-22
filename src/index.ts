@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import 'dotenv/config';
 import figlet from 'figlet';
 import { contacts } from './contacts';
+import { pdf } from './pdf';
 import { typeorm } from './typeorm';
 import { youtube } from './youtube';
 
@@ -26,6 +27,15 @@ program
   .description('Chat with the Contacts API using an OpenAPI spec')
   .action(async (opts) => {
     await contacts(opts);
+  });
+
+program
+  .command('pdf')
+  .alias('p')
+  .option('-v, --verbose', 'Verbose output')
+  .description('Chat with a PDF using an OpenAPI spec')
+  .action(async (opts) => {
+    await pdf(opts);
   });
 
 program

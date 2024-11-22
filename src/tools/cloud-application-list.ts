@@ -12,7 +12,7 @@ import { LoggerOperations } from '../utils';
 const url = 'https://serverlessland.com/patterns?framework=CDK&language=TypeScript';
 
 const initChain = async (clog: LoggerOperations) => {
-  const model = new OpenAI({ temperature: 0, modelName: 'gpt-4' });
+  const model = new OpenAI({ temperature: 0, modelName: 'gpt-4o' });
   const loader = new PuppeteerWebBaseLoader(url, {
     launchOptions: { headless: 'new' },
     gotoOptions: {

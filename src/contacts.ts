@@ -1,11 +1,11 @@
 import { input } from '@inquirer/prompts';
+import { StringOutputParser } from '@langchain/core/output_parsers';
+import { PromptTemplate } from '@langchain/core/prompts';
+import { RunnablePassthrough, RunnableSequence } from '@langchain/core/runnables';
+import { ChatOpenAI } from '@langchain/openai';
 import boxen from 'boxen';
 import { createOpenAPIChain } from 'langchain/chains';
-import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { Document } from 'langchain/document';
-import { PromptTemplate } from 'langchain/prompts';
-import { StringOutputParser } from 'langchain/schema/output_parser';
-import { RunnablePassthrough, RunnableSequence } from 'langchain/schema/runnable';
 import ora from 'ora';
 import { clearTable, getVectorStore } from './db';
 import { jsonStringToDocs, logger, serializeDocs } from './utils';
@@ -15,7 +15,7 @@ let clog = logger(false);
 
 const model = new ChatOpenAI({
   temperature: 0.4,
-  modelName: 'gpt-4',
+  modelName: 'gpt-4o',
 });
 
 async function fetchContactData(): Promise<Document<Record<string, any>>[]> {
@@ -78,7 +78,7 @@ export const contacts = async (opts: { verbose?: boolean }) => {
   const chain = RunnableSequence.from([
     {
       context: retriever.pipe(serializeDocs),
-      input: (input) => new RunnablePassthrough({ input }),
+      question: new RunnablePassthrough(),
     },
     prompt,
     model,

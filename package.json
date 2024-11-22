@@ -8,6 +8,7 @@
     "build": "npx tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "contacts": "ts-node src/index.ts contacts",
+    "pdf": "ts-node src/index.ts pdf",
     "typeorm": "ts-node src/index.ts typeorm",
     "youtube": "ts-node src/index.ts youtube",
     "help": "ts-node src/index.ts --help"
@@ -17,22 +18,25 @@
   "license": "ISC",
   "dependencies": {
     "@inquirer/prompts": "^3.2.0",
+    "@langchain/community": "^0.3.15",
+    "@langchain/core": "^0.3.18",
+    "@langchain/openai": "^0.3.14",
     "boxen": "^5.1.2",
     "change-case": "^5.1.2",
     "cheerio": "^1.0.0-rc.12",
     "commander": "^11.1.0",
     "figlet": "^1.6.0",
-    "hnswlib-node": "^1.4.2",
+    "hnswlib-node": "^3.0.0",
     "html-to-text": "^9.0.5",
     "jsdom": "^22.1.0",
-    "langchain": "^0.0.167",
     "openai": "^4.12.1",
     "ora": "^5.4.1",
+    "pdf-parse": "^1.1.1",
     "pg": "^8.11.3",
     "puppeteer": "^19.11.1",
     "typeorm": "^0.3.17",
-    "youtube-transcript": "^1.0.6",
-    "youtubei.js": "^5.8.0"
+    "youtube-transcript": "^1.2.1",
+    "youtubei.js": "^9.4.0"
   },
   "devDependencies": {
     "@types/commander": "^2.12.2",

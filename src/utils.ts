@@ -1,6 +1,10 @@
 import { Document } from 'langchain/document';
-import { AgentStep } from 'langchain/schema';
 import { StructuredTool } from 'langchain/tools';
+
+export type AgentStep = {
+  action: { log: string };
+  observation: string;
+};
 
 export type LoggerOperations = {
   log: (...args: any[]) => void;

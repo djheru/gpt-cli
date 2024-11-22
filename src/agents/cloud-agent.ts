@@ -1,11 +1,11 @@
-import { AgentExecutor, ZeroShotAgent } from 'langchain/agents';
-import { LLMChain } from 'langchain/chains';
-import { ChatOpenAI } from 'langchain/chat_models/openai';
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
   SystemMessagePromptTemplate,
-} from 'langchain/prompts';
+} from '@langchain/core/prompts';
+import { ChatOpenAI } from '@langchain/openai';
+import { AgentExecutor, ZeroShotAgent } from 'langchain/agents';
+import { LLMChain } from 'langchain/chains';
 import { cloudApplicationListTool } from '../tools/cloud-application-list';
 import { LoggerOperations, logger } from '../utils';
 
@@ -38,7 +38,7 @@ const CloudAgent = async (topic: string, clog: LoggerOperations) => {
     ]);
 
     // LLM - ChatOpenAI
-    const llm = new ChatOpenAI({ temperature: 0, modelName: 'gpt-4' });
+    const llm = new ChatOpenAI({ temperature: 0, modelName: 'gpt-4o' });
 
     // LLM Chain
     const llmChain = new LLMChain({ prompt, llm });

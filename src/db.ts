@@ -1,6 +1,7 @@
 import 'dotenv/config';
-import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
-import { TypeORMVectorStore } from 'langchain/vectorstores/typeorm';
+
+import { TypeORMVectorStore } from '@langchain/community/vectorstores/typeorm';
+import { OpenAIEmbeddings } from '@langchain/openai';
 import { DataSourceOptions } from 'typeorm';
 
 const {
